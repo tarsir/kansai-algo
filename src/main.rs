@@ -33,23 +33,25 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn find_combinations(suffix_len: usize, words: Vec<String>) -> Option<Combinations> {
-    let mut suffix_map: HashMap<&str, Vec<&str>> = HashMap::new();
-    let mut prefix_frequencies: HashMap<&str, u32> = HashMap::new();
+    let mut suffix_map: HashMap<String, Vec<String>> = HashMap::new();
+    let mut prefix_frequencies: HashMap<String, u32> = HashMap::new();
 
     for w in words.iter() {
         if w.len() < 3 || w.len() > 6 {
             continue;
         }
-        let split_index = w.len() - 2;
+        let split_index = w.len() - suffix_len;
         let (prefix, suffix) = w.split_at(split_index);
-        match suffix_map.get_mut(suffix) {
-            Some(prefixes) => prefixes.push(prefix),
+        let prefix = prefix.to_string();
+        let suffix = suffix.to_string();
+        match suffix_map.get_mut(&suffix) {
+            Some(prefixes) => prefixes.push(prefix.clone()),
             None => {
-                suffix_map.insert(suffix, vec![prefix]);
+                suffix_map.insert(suffix, vec![prefix.clone()]);
             }
         }
 
-        match prefix_frequencies.get_mut(prefix) {
+        match prefix_frequencies.get_mut(&prefix) {
             Some(count) => *count += 1,
             None => {
                 prefix_frequencies.insert(prefix, 1);
@@ -57,11 +59,11 @@ fn find_combinations(suffix_len: usize, words: Vec<String>) -> Option<Combinatio
         }
     }
 
-    suffix_map.retain(|k, v| v.len() >= 4);
+    suffix_map.retain(|_k, v| v.len() >= 4);
     for (_, prefixes) in suffix_map.iter_mut() {
-        prefixes.retain(|&p| prefix_frequencies[p] > 1)
+        prefixes.retain(|p| prefix_frequencies[p] > 1)
     }
-    prefix_frequencies.retain(|k, v| v > &mut 1);
+    prefix_frequencies.retain(|_k, v| v > &mut 1);
 
     println!("{:?}", suffix_map.len());
     println!("{:?}", prefix_frequencies.len());
@@ -69,9 +71,22 @@ fn find_combinations(suffix_len: usize, words: Vec<String>) -> Option<Combinatio
 }
 
 fn search_combinations(
-    combo_suffixes: &[&str],
-    all_suffixes: HashMap<&str, Vec<&str>>,
-    prefix_frequencies: HashMap<&str, u32>,
+    mut combinations: Combinations,
+    next_suffix: String,
+    all_suffixes: HashMap<String, Vec<String>>,
+    prefix_frequencies: HashMap<String, u32>,
 ) -> Option<Combinations> {
+    if combinations.suffixes.contains(&next_suffix.to_string()) {
+        return None;
+    }
+    let next_prefixes = all_suffixes.get(&next_suffix).unwrap();
+    let mut buffers: [Vec<&String>; 4] = [vec![], vec![], vec![], vec![]];
+    for (count, mut prefix_list) in combinations.matching_prefixes.iter_mut() {
+        let (mut stays, shifts): (Vec<String>, Vec<String>) = prefix_list
+            .into_iter()
+            .partition(|p| next_prefixes.contains(p));
+        buffers[*count as usize - 1] = shifts;
+        prefix_list = stays;
+    }
     None
 }
