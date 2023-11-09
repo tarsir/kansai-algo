@@ -5,3 +5,7 @@ for n in 2 5 10; do
   echo "Downloading ${n}k word list"
   curl --create-dirs -o "data/words${n}k.json" "${url_base}${n}k.json"
 done
+
+megalist="https://raw.githubusercontent.com/martinheidegger/kansai-algo/main/words_alpha.txt"
+echo "Downloading megalist (thanks Martin!)"
+curl -o "data/words_mega.json" $megalist
