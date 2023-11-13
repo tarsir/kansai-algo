@@ -29,9 +29,9 @@ I ran the algorithm on the 2k, 5k, 10k, and 370k word lists with the following r
 
 | Word list | Time   | Words after filter | Combinations found |
 ----------------------------------------------------------------
-| 2k        | 0.389s | 1529               | 169                |
-| 5k        | 0.968s | 3506               | 326                |
-| 10k       | 3.579s | 6615               | 487                |
+| 2k        | 0.617s | 1535               | 3                  |
+| 5k        | 8.201s | 3506               | 229                |
+| 10k       | 4m28s  | 6616               | 72035              |
 | 370k      |        | 160302             | |
 
 
