@@ -54,18 +54,8 @@ impl Combinations {
     }
 }
 
-fn compare_suffix_sets(a: &Combinations, b: &Combinations) -> Ordering {
-    let a_set: HashSet<&String> = HashSet::from_iter(a.suffixes.iter());
-    let b_set = HashSet::from_iter(b.suffixes.iter());
-    if a_set.symmetric_difference(&b_set).count() == 0 {
-        Ordering::Equal
-    } else {
-        Ordering::Greater
-    }
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
-    let file = File::open("./data/words5k.json")?;
+    let file = File::open("./data/words2k.json")?;
     let reader = BufReader::new(file);
     let list_words: WordList = serde_json::from_reader(reader)?;
     // let list_words = WordList {
@@ -87,7 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     results.sort_by_cached_key(|c| c.suffixes.join(""));
     results.dedup_by_key(|a| a.suffixes.join(""));
 
-    let mut out_file = File::create("output5k.json").unwrap();
+    let mut out_file = File::create("output2k.json").unwrap();
     out_file.write_all(&serde_json::to_string(&results).unwrap().into_bytes())?;
     println!("Found {} combinations", results.len());
 
@@ -248,12 +238,12 @@ fn search_from_center_candidates(
     prefix_map: &HashMap<String, Vec<String>>,
     mut counter: &mut i32,
 ) -> Option<Vec<Combinations>> {
-    if combinations.suffixes.len() > 4 {
-        return None;
-    }
-
     if combinations.suffixes.len() == 4 && validate_combination(combinations) {
         return Some(vec![combinations.clone()]);
+    }
+
+    if combinations.suffixes.len() >= 4 {
+        return None;
     }
 
     let next_suffixes: Vec<&String> = prefix_map[center_prefix]
@@ -513,14 +503,28 @@ fn validate_combination(combinations: &Combinations) -> bool {
             }
             true
         }
-        // if there are MORE than 4, invalid
-        n if n > 4 => false,
-        // if less than 4, the highest count prefix set must have something in it
-        n if n < 4 => !combinations
+        // if only one, the
+        1 => !combinations
             .matching_prefixes
-            .get(&(n as u32))
+            .get(&(1 as u32))
             .unwrap()
             .is_empty(),
+        // if there are MORE than 4, invalid
+        n if n > 4 => false,
+        n if n == 2 || n == 3 => {
+            if !(1..=(n - 1)).all(|i| {
+                combinations
+                    .matching_prefixes
+                    .get(&(i as u32))
+                    .unwrap()
+                    .len()
+                    >= 4
+            }) {
+                false
+            } else {
+                true
+            }
+        }
         // otherwise it's not yet invalid
         _ => true,
     }
